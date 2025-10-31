@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask import render_template
 import requests
 
@@ -9,6 +9,9 @@ app = Flask(__name__)
 
 NW_ID = "81df17ee36bf1ee1"
 DATABASE = './database.db'
+API_URL = "http://host-api:8173/"
+# todo
+# API_URL = os.getenv(ASDLFK)
 
 conn = None
 
@@ -29,17 +32,17 @@ conn = None
 #########################
 @app.route("/network")
 def network():
-    print("attmept to API")
-    API_url = "http://host-api:8001/internal/getInterfaces/"
-    localResponse = None
+
+    networkUrl = API_URL + "internal/network/"
+    networkReq = None
     try:
-        localResponse = requests.get(
-            API_url,
+        networkReq = requests.get(
+            networkUrl,
             headers={
                 "Content-type": "application/json; charset=UTF-8"
             }
         )
-        localResponse.raise_for_status()
+        networkReq.raise_for_status()
     except requests.exceptions.HTTPError as errh:
         print("Http Error:",errh)
     except requests.exceptions.ConnectionError as errc:
@@ -50,14 +53,10 @@ def network():
         print("OOps: Something Else",err)
     except:
         print("OK")
-    
-    if localResponse is None:
-        return render_template("network.html", data={"nw_id": NW_ID, "stdout": "NONE", "devices": []})
-    
-    print(localResponse)
-    interfaces = list(localResponse.json())
-    print(interfaces)
-    return render_template("network.html", data={"nw_id": NW_ID, "stdout": interfaces["stdout"], "devices": interfaces["stdout"]})
+
+    received = networkReq.json()
+
+    return render_template("network.html", data={"nw_id": NW_ID, "devices": received["devices"], "connections": received["connections"]})
 
 @app.route("/live")
 def live():

@@ -1,26 +1,26 @@
 services:
-  db:
-    # We use a mariadb image which supports both amd64 & arm64 architecture
-    image: mariadb:10-focal
-    command: '--default-authentication-plugin=mysql_native_password'
-    restart: always
-    healthcheck:
-      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 --password="$$(cat /run/secrets/db-password)" --silent']
-      interval: 3s
-      retries: 5
-      start_period: 30s
-    secrets:
-      - db-password
-    volumes:
-      - db-data:/var/lib/mysql
-    networks:
-      - backnet
-    environment:
-      - MYSQL_DATABASE=example
-      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password
-    expose:
-      - 3306
-      - 33060
+  # db:
+  #   # We use a mariadb image which supports both amd64 & arm64 architecture
+  #   image: mariadb:10-focal
+  #   command: '--default-authentication-plugin=mysql_native_password'
+  #   restart: always
+  #   healthcheck:
+  #     test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 --password="$$(cat /run/secrets/db-password)" --silent']
+  #     interval: 3s
+  #     retries: 5
+  #     start_period: 30s
+  #   secrets:
+  #     - db-password
+  #   volumes:
+  #     - db-data:/var/lib/mysql
+  #   networks:
+  #     - backnet
+  #   environment:
+  #     - MYSQL_DATABASE=example
+  #     - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password
+  #   expose:
+  #     - 3306
+  #     - 33060
 
   server:
     build:
@@ -36,9 +36,9 @@ services:
       - frontnet
     environment:
       - HOST_API_URL=http://host-api:8081
-    depends_on:
-      db:
-        condition: service_healthy
+    # depends_on:
+    #   db:
+    #     condition: service_healthy
 
   host-api:
     build:
@@ -47,12 +47,13 @@ services:
     volumes:
       - /etc/NetworkManager:/etc/NetworkManager
       - /run/NetworkManager:/run/NetworkManager
+      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
     networks:
       - backnet
     ports:
-      - "8081:8081"
+      - "8173:8173"
 
   proxy:
     build: proxy

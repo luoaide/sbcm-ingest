@@ -1,31 +1,29 @@
-from flask import Flask, jsonify
 import subprocess
-import scripts.internal as host
 
-api = Flask(__name__)
-
-############################################
-###### APIs for Device Configurations ######
-############################################
 
 #######################################################
 ########## MANAGE NetworkManger CONNECTIONS ###########
-@api.route("/internal/network/", methods=["GET"])
-def getNetwork():
-    devices = host.getDevices()
-    deviceDetails = []
-    for device in devices:
-        deviceDetails.append(host.getDevice(device["name"]))
 
-    connections = host.getConnections()
-    connectionDetails = []
-    for connection in connections:
-        connectionDetails.append(host.getConnection(connection["name"]))
-    
-    return jsonify(success=True, devices=deviceDetails, connections=connectionDetails)
+def getConnections():
+    command = ["nmcli", "-t", "-f", "NAME,TYPE,DEVICE,STATE", "connection"]
+    payload = []
+    try: 
+        output = subprocess.run(command, shell=False, capture_output=True, check=False)
+        print(output.stdout.decode())
+        lines = output.stdout.decode().splitlines()
+        for line in lines:
+            name, kind, device, state = line.split(":")
+            if kind != "bridge":
+                payload.append({"name": name, "type": kind, "device": device, "state": state})
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing command: {e}")
+        print(f"Stderr: {e.stderr}")
+        payload = {"error"}
+
+    return payload
 
 # gets the details about the connection profile
-@api.route("/internal/<connection>/", methods=["GET"])
 def getConnection(connection):
     command = ["nmcli", "-t", "connection", "show", connection]
     payload = {}
@@ -42,17 +40,14 @@ def getConnection(connection):
         print(f"Stderr: {e.stderr}")
         payload = {"error"}
 
-    print(payload)
-    return jsonify(success=True, payload=payload)
+    return payload
 
 # bulk modifies the connection profile
-@api.route("/internal/<connection>/", methods=["POST"])
 def setConnection(connection):
     return {}
 
 ###################################################
 ########## MANAGE NetworkManger DEVICES ###########
-@api.route("/internal/devices/", methods=["GET"])
 def getDevices():
     command = ["nmcli", "-t", "-f", "DEVICE,TYPE,STATE,CONNECTION", "device"]
     payload = []
@@ -63,19 +58,32 @@ def getDevices():
         for line in lines:
             device, kind, state, connection = line.split(":")
             if kind != "bridge" and device[0] != "v" and kind == "ethernet":
-                payload.append({"device": device, "type": kind, "state": state, "connection": connection})
+                payload.append({"name": device, "type": kind, "state": state, "connection": connection})
                 
     except subprocess.CalledProcessError as e:
         print(f"Error executing command: {e}")
         print(f"Stderr: {e.stderr}")
         payload = {"error"}
 
-    print(payload)
-    return jsonify(success=True, payload=payload)
+    return payload
 
-# @api.route("/internal/<device>/", methods=["POST"])
-# def getDevice(device):
-#     return {}
+def getDevice(device):
+    command = ["nmcli", "-t", "device", "show", device]
+    payload = {}
+    try: 
+        output = subprocess.run(command, shell=False, capture_output=True, check=False)
+        print(output.stdout.decode())
+        lines = output.stdout.decode().splitlines()
+        for line in lines:
+            setting, value = line.split(":", 1)
+            payload[setting] = value
+                
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing command: {e}")
+        print(f"Stderr: {e.stderr}")
+        payload = {"error"}
+
+    return payload
 
 # @api.route("/internal/<device>/<connection>", methods=["POST"])
 # def setConnection(device, connection):
