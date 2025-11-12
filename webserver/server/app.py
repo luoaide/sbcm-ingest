@@ -2,6 +2,8 @@ from flask import Flask, jsonify, request
 from flask import render_template
 import requests
 
+import scripts.internal as host
+
 app = Flask(__name__)
 
 API_URL = "http://host-api:8173/"
@@ -15,30 +17,15 @@ conn = None
 #########################
 @app.route("/network")
 def network():
-    networkUrl = API_URL + "internal/network/"
-    networkReq = None
-    try:
-        networkReq = requests.get(
-            networkUrl,
-            headers={
-                "Content-type": "application/json; charset=UTF-8"
-            }
-        )
-        networkReq.raise_for_status()
-    except requests.exceptions.HTTPError as errh:
-        print("Http Error:",errh)
-    except requests.exceptions.ConnectionError as errc:
-        print("Error Connecting:",errc)
-    except requests.exceptions.Timeout as errt:
-        print("Timeout Error:",errt)
-    except requests.exceptions.RequestException as err:
-        print("OOps: Something Else",err)
-    except:
-        print("OK")
+    devices = host.getDevices()
+    deviceDetails = []
+    for device in devices:
+        deviceDetails.append(host.getDevice(device["name"]))
 
-    received = networkReq.json()
-    devices = received["devices"]
-    profiles = received["profiles"]
+    profiles = host.getProfiles()
+    profileDetails = []
+    for profile in profiles:
+        profileDetails.append(host.getProfile(profile["name"]))
 
     cleanedDevices = []
     clearnedProfiles = []
@@ -71,72 +58,18 @@ def network():
 @app.route("/internal/<profile>/", methods=["POST"])
 def setProfile(profile):
     data = request.json
-    networkUrl = API_URL + "internal/" + profile + "/"
-    networkReq = None
-    try:
-        networkReq = requests.post(
-            networkUrl,
-            headers={
-                "Content-type": "application/json; charset=UTF-8"
-            },
-            data = data
-        )
-        networkReq.raise_for_status()
-    except requests.exceptions.HTTPError as errh:
-        print("Http Error:",errh)
-    except requests.exceptions.ConnectionError as errc:
-        print("Error Connecting:",errc)
-    except requests.exceptions.Timeout as errt:
-        print("Timeout Error:",errt)
-    except requests.exceptions.RequestException as err:
-        print("OOps: Something Else",err)
-    except:
-        print("OK")
-
-    return jsonify(success=True)
+    newName = data.get("name")
+    newIP = data.get("ip")
+    newGateway = data.get("gateway")
+    newInterface = data.get("interface")
+    
+    args = ["con-name", newName, "ipv4.address", newIP, "ipv4.gateway", newGateway, "ifname", newInterface]
+    return jsonify(host.modifyProfile(profile, args))
 
 @app.route("/internal/<profile>/activate", methods=["POST"])
 def activateProfile(profile):
-    url = API_URL + "internal/" + profile + "/activate/"
-    req = None
-    try:
-        req = requests.post(
-            url,
-            headers={"Content-type": "application/json; charset=UTF-8"}
-        )
-        req.raise_for_status()
-    except requests.exceptions.HTTPError as errh:
-        print("Http Error:",errh)
-    except requests.exceptions.ConnectionError as errc:
-        print("Error Connecting:",errc)
-    except requests.exceptions.Timeout as errt:
-        print("Timeout Error:",errt)
-    except requests.exceptions.RequestException as err:
-        print("OOps: Something Else",err)
-    except:
-        print("OK")
-
-    return jsonify(success=True)
+    return jsonify(host.activateProfile(profile))
 
 @app.route("/internal/<profile>/deactivate", methods=["POST"])
 def deactivateProfile(profile):
-    url = API_URL + "internal/" + profile + "/deactivate/"
-    req = None
-    try:
-        req = requests.post(
-            url,
-            headers={"Content-type": "application/json; charset=UTF-8"}
-        )
-        req.raise_for_status()
-    except requests.exceptions.HTTPError as errh:
-        print("Http Error:",errh)
-    except requests.exceptions.ConnectionError as errc:
-        print("Error Connecting:",errc)
-    except requests.exceptions.Timeout as errt:
-        print("Timeout Error:",errt)
-    except requests.exceptions.RequestException as err:
-        print("OOps: Something Else",err)
-    except:
-        print("OK")
-
-    return jsonify(success=True)
+    return jsonify(host.deactivateProfile(profile))
