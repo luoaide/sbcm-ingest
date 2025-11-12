@@ -44,27 +44,25 @@ def network():
     clearnedProfiles = []
     for device in devices:
         cleanedDevices.append({
-            "active": (device["GENERAL.STATE"] == "100 (connected)"),
-            "name": device["GENERAL.DEVICE"],
-            "ipAddress": device["IP4.ADDRESS[1]"],
-            "gateway": device["IP4.GATEWAY"],
-            "profile": device["GENDERAL.CONNECTION"]
+            "active": (device.get("GENERAL.STATE","not defined")  == "100 (connected)"),
+            "name": device.get("GENERAL.DEVICE","not defined"),
+            "ipAddress": device.get("IP4.ADDRESS[1]", "not defined"),
+            "gateway": device.get("IP4.GATEWAY","not defined"),
+            "profile": device.get("GENERAL.CONNECTION","not defined") 
         })
     for profile in profiles:
         clearnedProfiles.append({
-            "id": profile["connection.uuid"],
-            "active": (profile["GENERAL.STATE"] == "activated"),
-            "name": profile["GENDERAL.NAME"],
-            "dhcp": (profile["ipv4.method"] == "auto"),
-            "ipAddress": profile["IP4.ADDRESS[1]"],
-            "device": profile["GENDERAL.DEVICES"]
+            "id": profile.get("connection.uuid","not defined"),
+            "active": (profile.get("GENERAL.STATE","not defined") == "activated"),
+            "name": profile.get("connection.id","not defined"),
+            "dhcp": (profile.get("ipv4.method","not defined") == "auto"),
+            "ipAddress": profile.get("IP4.ADDRESS[1]","not defined"),
+            "gateway": profile.get("IP4.GATEWAY", "not defined"),
+            "device": profile.get("connection.interface-name","not defined")
         })
 
     return render_template("network.html", data={"devices": cleanedDevices, "profiles": clearnedProfiles})
 
-@app.route("/live")
-def live():
-    return render_template("live.html", data={})
 
 ############################################
 ###### APIs for Device Configurations ######

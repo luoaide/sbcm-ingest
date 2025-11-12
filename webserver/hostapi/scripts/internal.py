@@ -9,7 +9,6 @@ def getProfiles():
     payload = []
     try: 
         output = subprocess.run(command, shell=False, capture_output=True, check=False)
-        print(output.stdout.decode())
         lines = output.stdout.decode().splitlines()
         for line in lines:
             name, kind, device, state = line.split(":")
@@ -29,7 +28,6 @@ def getProfile(profile):
     payload = {}
     try: 
         output = subprocess.run(command, shell=False, capture_output=True, check=False)
-        print(output.stdout.decode())
         lines = output.stdout.decode().splitlines()
         for line in lines:
             setting, value = line.split(":", 1)
@@ -106,7 +104,6 @@ def getDevices():
     payload = []
     try: 
         output = subprocess.run(command, shell=False, capture_output=True, check=False)
-        print(output.stdout.decode())
         lines = output.stdout.decode().splitlines()
         for line in lines:
             device, kind, state, connection = line.split(":")
@@ -125,7 +122,6 @@ def getDevice(device):
     payload = {}
     try: 
         output = subprocess.run(command, shell=False, capture_output=True, check=False)
-        print(output.stdout.decode())
         lines = output.stdout.decode().splitlines()
         for line in lines:
             setting, value = line.split(":", 1)

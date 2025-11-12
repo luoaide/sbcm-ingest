@@ -67,7 +67,7 @@
                 const newGateway = document.getElementById("gateway-" + profile).value;
                 const newInterface = document.getElementById("if-" + profile).value;
 
-                const url = "/internal/" + profile
+                const url = "/internal/" + profile + "/"
 
                 const payload = {
                     "name": newName,
@@ -141,6 +141,7 @@
                     "name": "text"
                     "dhcp": 0/1,
                     "device": ttt
+                    "gateway": test
                     "ipAddress": "111.11.111.111"
                 }
             ],
@@ -223,19 +224,19 @@
                                 </div>
                                 <div class="col">
                                     <div class="form-floating mb-1">
-                                        <input name="name" id="name-{{profile.id}}" class="form-control form-control-sm" placeholder="Profile Name" type="text" value="{{device.name}}" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
-                                        <label for="name-{{device.id}}">Name</label>
+                                        <input name="name" id="name-{{profile.id}}" class="form-control form-control-sm" placeholder="Profile Name" type="text" value="{{profile.name}}" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
+                                        <label for="name-{{profile.id}}">Name</label>
                                     </div>
                                     <div class="form-floating mb-1">
-                                        <input name="ip" id="ip-{{profile.id}}" class="form-control form-control-sm" placeholder="IP V4 Assignment" type="text" value="{{device.ipAssignments[0]}}" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
-                                        <label for="ip-{{device.id}}">IP Address</label>
+                                        <input name="ip" id="ip-{{profile.id}}" class="form-control form-control-sm" placeholder="IP V4 Assignment" type="text" value="{{profile.ipAddress}}" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
+                                        <label for="ip-{{profile.id}}">IP Address</label>
                                     </div>
                                     <div class="form-floating mb-1">
-                                        <input name="gateway" id="gateway-{{profile.id}}" class="form-control form-control-sm" placeholder="Gateway" type="text" value="{{device.gateway}}" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
-                                        <label for="ip-{{device.id}}">Gateway</label>
+                                        <input name="gateway" id="gateway-{{profile.id}}" class="form-control form-control-sm" placeholder="Gateway" type="text" value="{{profile.gateway}}" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
+                                        <label for="ip-{{profile.id}}">Gateway</label>
                                     </div>
                                     <div class="form-floating mb-1">
-                                        <select name="interface" id="if-{{device.id}}" class="form-control form-control-sm" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
+                                        <select name="interface" id="if-{{profile.id}}" class="form-control form-control-sm" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
                                             {% if profile.device %}
                                             <option value="" selected>{{profile.device}}</option>
                                             {% else %}
@@ -246,7 +247,7 @@
                                             <option value="{{device.id}}">{{device.name}}</option>
                                             {% endfor %}
                                         </select>
-                                        <label for="if-{{device.id}}">Interface</label>
+                                        <label for="if-{{profile.id}}">Interface</label>
                                     </div>
                                     
                                     <div class="btn-group">
