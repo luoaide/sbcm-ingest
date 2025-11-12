@@ -4,7 +4,7 @@ import subprocess
 #######################################################
 ########## MANAGE NetworkManger CONNECTIONS ###########
 
-def getConnections():
+def getProfiles():
     command = ["nmcli", "-t", "-f", "NAME,TYPE,DEVICE,STATE", "connection"]
     payload = []
     try: 
@@ -19,13 +19,13 @@ def getConnections():
     except subprocess.CalledProcessError as e:
         print(f"Error executing command: {e}")
         print(f"Stderr: {e.stderr}")
-        payload = {"error"}
+        payload = {e.stderr}
 
     return payload
 
 # gets the details about the connection profile
-def getConnection(connection):
-    command = ["nmcli", "-t", "connection", "show", connection]
+def getProfile(profile):
+    command = ["nmcli", "-t", "connection", "show", profile]
     payload = {}
     try: 
         output = subprocess.run(command, shell=False, capture_output=True, check=False)
@@ -38,12 +38,65 @@ def getConnection(connection):
     except subprocess.CalledProcessError as e:
         print(f"Error executing command: {e}")
         print(f"Stderr: {e.stderr}")
-        payload = {"error"}
+        payload = {e.stderr}
+
+    return payload
+
+# modifies a connection profile
+# sudo nmcli connection add type ethernet ifname eth0 con-name static-eth0 \
+#   ipv4.addresses 192.168.1.100/24 \
+#   ipv4.gateway 192.168.1.1 \
+#   ipv4.dns 8.8.8.8 \
+#   ipv4.method manual \
+#   autoconnect yes
+def modifyProfile(profile, args):
+    command = ["nmcli", "connection", "modify", profile] + args
+    payload = {}
+    try: 
+        subprocess.run(command, shell=False, capture_output=True, check=False)
+        payload = {"success": True}
+                
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing command: {e}")
+        print(f"Stderr: {e.stderr}")
+        payload = {e.stderr}
+
+    return payload
+
+def activateProfile(profile):
+    command = ["nmcli", "connection", "up", profile]
+    payload = {}
+    try: 
+        subprocess.run(command, shell=False, capture_output=True, check=False)
+        payload = {"success": True}
+                
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing command: {e}")
+        print(f"Stderr: {e.stderr}")
+        payload = {e.stderr}
+
+    return payload
+
+def deactivateProfile(profile):
+    command = ["nmcli", "connection", "down", profile]
+    payload = {}
+    try: 
+        subprocess.run(command, shell=False, capture_output=True, check=False)
+        payload = {"success": True}
+                
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing command: {e}")
+        print(f"Stderr: {e.stderr}")
+        payload = {e.stderr}
 
     return payload
 
 # bulk modifies the connection profile
-def setConnection(connection):
+def activateProfile(profile):
+    return {}
+
+# bulk modifies the connection profile
+def disableProfile(profile):
     return {}
 
 ###################################################
@@ -63,7 +116,7 @@ def getDevices():
     except subprocess.CalledProcessError as e:
         print(f"Error executing command: {e}")
         print(f"Stderr: {e.stderr}")
-        payload = {"error"}
+        payload = {e.stderr}
 
     return payload
 
@@ -81,14 +134,6 @@ def getDevice(device):
     except subprocess.CalledProcessError as e:
         print(f"Error executing command: {e}")
         print(f"Stderr: {e.stderr}")
-        payload = {"error"}
+        payload = {e.stderr}
 
     return payload
-
-# @api.route("/internal/<device>/<connection>", methods=["POST"])
-# def setConnection(device, connection):
-#     return {}
-
-# @app.route("/uas/announceStreamEnd/<nodeID>/<pathName>", methods=["GET"])
-# def announceStreamEnd(nodeID, pathName):
-#     return {}

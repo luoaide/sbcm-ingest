@@ -1,5 +1,5 @@
-from flask import Flask, jsonify
-import subprocess
+from flask import Flask, jsonify, request
+
 import scripts.internal as host
 
 api = Flask(__name__)
@@ -17,70 +17,38 @@ def getNetwork():
     for device in devices:
         deviceDetails.append(host.getDevice(device["name"]))
 
-    connections = host.getConnections()
-    connectionDetails = []
-    for connection in connections:
-        connectionDetails.append(host.getConnection(connection["name"]))
+    profiles = host.getProfiles()
+    profileDetails = []
+    for profile in profiles:
+        profileDetails.append(host.getProfile(profile["name"]))
     
-    return jsonify(success=True, devices=deviceDetails, connections=connectionDetails)
+    return jsonify(success=True, devices=deviceDetails, profiles=profileDetails)
 
-# gets the details about the connection profile
-@api.route("/internal/<connection>/", methods=["GET"])
-def getConnection(connection):
-    command = ["nmcli", "-t", "connection", "show", connection]
-    payload = {}
-    try: 
-        output = subprocess.run(command, shell=False, capture_output=True, check=False)
-        print(output.stdout.decode())
-        lines = output.stdout.decode().splitlines()
-        for line in lines:
-            setting, value = line.split(":", 1)
-            payload[setting] = value
-                
-    except subprocess.CalledProcessError as e:
-        print(f"Error executing command: {e}")
-        print(f"Stderr: {e.stderr}")
-        payload = {"error"}
+# modifies the connection profile
+@api.route("/internal/<profile>/", methods=["POST"])
+def setProfile(profile):
+    data = request.json
+    newName = data.get("name")
+    newIP = data.get("ip")
+    newGateway = data.get("gateway")
+    newInterface = data.get("interface")
+    
+    args = ["con-name", newName, "ipv4.address", newIP, "ipv4.gateway", newGateway, "ifname", newInterface]
+    return jsonify(host.modifyProfile(profile, args))
 
-    print(payload)
-    return jsonify(success=True, payload=payload)
+# activates a profile
+@api.route("/internal/<profile>/activate/", methods=["POST"])
+def activateProfile(profile):
+    return jsonify(host.activateProfile(profile))
 
-# bulk modifies the connection profile
-@api.route("/internal/<connection>/", methods=["POST"])
-def setConnection(connection):
-    return {}
+# deactivates a profile
+@api.route("/internal/<profile>/deactivate/", methods=["POST"])
+def deactivateProfile(profile):
+    return jsonify(host.deactivateProfile(profile))
+
 
 ###################################################
 ########## MANAGE NetworkManger DEVICES ###########
 @api.route("/internal/devices/", methods=["GET"])
 def getDevices():
-    command = ["nmcli", "-t", "-f", "DEVICE,TYPE,STATE,CONNECTION", "device"]
-    payload = []
-    try: 
-        output = subprocess.run(command, shell=False, capture_output=True, check=False)
-        print(output.stdout.decode())
-        lines = output.stdout.decode().splitlines()
-        for line in lines:
-            device, kind, state, connection = line.split(":")
-            if kind != "bridge" and device[0] != "v" and kind == "ethernet":
-                payload.append({"device": device, "type": kind, "state": state, "connection": connection})
-                
-    except subprocess.CalledProcessError as e:
-        print(f"Error executing command: {e}")
-        print(f"Stderr: {e.stderr}")
-        payload = {"error"}
-
-    print(payload)
-    return jsonify(success=True, payload=payload)
-
-# @api.route("/internal/<device>/", methods=["POST"])
-# def getDevice(device):
-#     return {}
-
-# @api.route("/internal/<device>/<connection>", methods=["POST"])
-# def setConnection(device, connection):
-#     return {}
-
-# @app.route("/uas/announceStreamEnd/<nodeID>/<pathName>", methods=["GET"])
-# def announceStreamEnd(nodeID, pathName):
-#     return {}
+    return {}

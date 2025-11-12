@@ -1,5 +1,11 @@
 # sbcm-ingest
 
+## Getting Started
+
+1. Install Docker on your host.
+2. pull the source for this project
+3. navigate into the root directory and run ./install.sh
+
 ## Components
 
 Webserver - hosted on the SBCM... APIs allow web requests to modify on-board configurations.
